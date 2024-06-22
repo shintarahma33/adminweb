@@ -2,6 +2,29 @@
 require 'function.php';
 require 'cek.php';
 
+function insertImage($connection, $images, $itemId)
+{
+    // Handle image uploads
+    $targetDir = "uploads/";
+
+    foreach ($images['name'] as $key => $val) {
+
+        $basenameImage = basename($images['name'][$key]);
+        $imageType = strtolower(pathinfo($basenameImage, PATHINFO_EXTENSION));
+        $imageName = date("YmdHis") . $key . '.' . $imageType;
+        $targetFilePath = $targetDir . $imageName;
+        move_uploaded_file($images['tmp_name'][$key], $targetFilePath);
+
+        $insertImages = mysqli_query($connection, "INSERT INTO item_photo (item_id, photo, created_at) VALUES ('$itemId','$imageName',NOW())");
+
+        if ($insertImages) {
+            header('location:index.php');
+        } else {
+            echo 'Failed to update data';
+        }
+    }
+}
+
 //menambah barang baru
 if (isset($_POST['addnewbarang'])) {
     $name = $_POST['name'];
@@ -10,53 +33,50 @@ if (isset($_POST['addnewbarang'])) {
     $point = $_POST['point'];
     $normal_price = $_POST['normal_price'];
     $reseller_price = $_POST['reseller_price'];
+    $images = $_FILES['images'];
 
+    $insertdata = mysqli_query($conn, "INSERT INTO item (name, description, quantity, point, normal_price, reseller_price, created_at) VALUES ('$name','$description','$quantity','$point','$normal_price','$reseller_price', NOW())");
+    if ($insertdata) {
+        $lastItemId = $conn->insert_id;
 
-
-    // Handle image uploads
-    $targetDir = "uploads/";
-    $imagePaths = [];
-    $uploadOk = true; // Flag to track if upload is successful
-
-    foreach ($_FILES['images']['name'] as $key => $val) {
-        $targetFilePath = $targetDir . basename($_FILES['images']['name'][$key]);
-        $imageType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
-
-        // Check if image file is a actual image or fake image
-        $check = getimagesize($_FILES['images']['tmp_name'][$key]);
-        if ($check !== false) {
-            // Allow certain file formats
-            if (in_array($imageType, ['jpg', 'png', 'jpeg', 'gif'])) {
-                // Move the uploaded file to the target directory
-                if (move_uploaded_file($_FILES['images']['tmp_name'][$key], $targetFilePath)) {
-                    $imagePaths[] = $targetFilePath;
-                } else {
-                    $uploadOk = false;
-                    echo "Sorry, there was an error uploading your file: " . $_FILES['images']['name'][$key] . "<br>";
-                }
-            } else {
-                $uploadOk = false;
-                echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed: " . $_FILES['images']['name'][$key] . "<br>";
-            }
-        } else {
-            $uploadOk = false;
-            echo "File is not an image: " . $_FILES['images']['name'][$key] . "<br>";
-        }
-    }
-
-    if ($uploadOk) {
-        // Convert the image paths array to a JSON string for storage
-        $imagePathsJson = json_encode($imagePaths);
-
-        // Insert data into database
-        $insertdata = mysqli_query($conn, "INSERT INTO item (name, description, quantity, point, normal_price, reseller_price, images) VALUES ('$name','$description','$quantity','$point','$normal_price','$reseller_price','$imagePathsJson')");
-        if ($insertdata) {
-            header('location:index.php');
-        } else {
-            echo 'Failed to insert data into the database';
+        if ($images['name'][0] != null) {
+            insertImage($conn, $images, $lastItemId);
         }
     } else {
-        echo 'Failed to upload images';
+        echo 'Failed to insert data into the database';
+    }
+} else if (isset($_POST['edit_item'])) {
+    $itemId = $_POST['item_id'];
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $quantity = $_POST['quantity'];
+    $point = $_POST['point'];
+    $normal_price = $_POST['normal_price'];
+    $reseller_price = $_POST['reseller_price'];
+    $images = $_FILES['images'];
+
+    $updateData = mysqli_query($conn, "UPDATE item SET name = '$name', description = '$description', quantity = '$quantity', point = '$point', normal_price = '$normal_price', reseller_price = '$reseller_price' WHERE id = '$itemId'");
+
+    if ($updateData) {
+
+        if ($images['name'][0] != null) {
+            $getImage = mysqli_query($conn, "SELECT photo FROM item_photo WHERE item_id = '$itemId'");
+
+            while ($row = mysqli_fetch_array($getImage)) {
+                unlink('uploads/' . $row[0]);
+                $deleteImage = mysqli_query($conn, "DELETE FROM item_photo WHERE item_id = '$itemId'");
+
+                if (!$deleteImage) {
+                    echo 'Failed to delete item photo';
+                }
+            }
+
+            insertImage($conn, $images, $itemId);
+        } else {
+            header('location:index.php');
+        }
+    } else {
+        echo 'Failed to update data';
     }
 }
 ?>
@@ -92,12 +112,11 @@ if (isset($_POST['addnewbarang'])) {
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
                 <div class="sidebar-brand-icon rotate-n-15">
                 </div>
-                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah </sup>
+                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah
                 </div>
-
             </a>
 
             <!-- Divider -->
@@ -107,7 +126,8 @@ if (isset($_POST['addnewbarang'])) {
             <li class="nav-item active">
                 <a class="nav-link" href="index.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Item</span></a>
+                    <span>Item</span>
+                </a>
             </li>
 
 
@@ -115,28 +135,32 @@ if (isset($_POST['addnewbarang'])) {
             <li class="nav-item active">
                 <a class="nav-link" href="itemstocklog.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Item Stock Log</span></a>
+                    <span>Item Stock Log</span>
+                </a>
             </li>
 
             <!-- Nav Item - Transaction -->
             <li class="nav-item active">
                 <a class="nav-link" href="transaction.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Transaction</span></a>
+                    <span>Transaction</span>
+                </a>
             </li>
 
             <!-- Nav Item - Katalog Produk -->
             <li class="nav-item active">
                 <a class="nav-link" href="user.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>User</span></a>
+                    <span>User</span>
+                </a>
             </li>
 
             <!-- Nav Item - Logout -->
             <li class="nav-item active">
                 <a class="nav-link" href="logout.php">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Logout</span></a>
+                    <span>Logout</span>
+                </a>
             </li>
 
 
@@ -178,10 +202,10 @@ if (isset($_POST['addnewbarang'])) {
                                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                                     </div>
                                     <div class="modal-body">
-                                        <form method="post" enctype="multipart/form-data">
+                                        <form method="post" enctype="multipart/form-data" action="">
                                             <input type="text" name="name" placeholder="Name" class="form-control" required>
                                             <br>
-                                            <input type="text" name="description" placeholder="Description" class="form-control" required>
+                                            <textarea name="description" placeholder="Description" class="form-control" required></textarea>
                                             <br>
                                             <input type="number" name="quantity" placeholder="Quantity" class="form-control" required>
                                             <br>
@@ -285,6 +309,15 @@ if (isset($_POST['addnewbarang'])) {
                                                                 <p>Point: <?= $point; ?></p>
                                                                 <p>Normal Price: <?= $normal_price; ?></p>
                                                                 <p>Reseller Price: <?= $reseller_price; ?></p>
+                                                                <p>Photo:</p>
+                                                                <?php
+                                                                $getImageFromItem = mysqli_query($conn, "SELECT * FROM item_photo WHERE item_id = " . $data['id']);
+                                                                while ($image = mysqli_fetch_array($getImageFromItem)) {
+                                                                ?>
+                                                                    <img src="uploads/<?= $image['photo']; ?>" alt="" width="100" height="100">
+                                                                <?php
+                                                                }
+                                                                ?>
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -304,11 +337,11 @@ if (isset($_POST['addnewbarang'])) {
                                                                 </button>
                                                             </div>
                                                             <div class="modal-body">
-                                                                <form method="post" action="edit_item.php"> <!-- Adjust action to your edit script -->
-                                                                    <input type="hidden" name="id" value="<?= $data['id']; ?>">
+                                                                <form method="post" action="" enctype="multipart/form-data"> <!-- Adjust action to your edit script -->
+                                                                    <input type="hidden" name="item_id" value="<?= $data['id']; ?>">
                                                                     <input type="text" name="name" placeholder="Name" class="form-control" value="<?= $name; ?>" required>
                                                                     <br>
-                                                                    <input type="text" name="description" placeholder="Description" class="form-control" value="<?= $description; ?>" required>
+                                                                    <textarea name="description" placeholder="Description" class="form-control"><?= $description; ?></textarea>
                                                                     <br>
                                                                     <input type="number" name="quantity" placeholder="Quantity" class="form-control" value="<?= $quantity; ?>" required>
                                                                     <br>
@@ -318,7 +351,9 @@ if (isset($_POST['addnewbarang'])) {
                                                                     <br>
                                                                     <input type="number" name="reseller_price" placeholder="Reseller Price" class="form-control" value="<?= $reseller_price; ?>" required>
                                                                     <br>
-                                                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                                                    <input type="file" name="images[]" multiple class="form-control" accept="image/*">
+                                                                    <br>
+                                                                    <button type="submit" class="btn btn-primary" name="edit_item">Save changes</button>
                                                                 </form>
                                                             </div>
                                                             <div class="modal-footer">
@@ -342,9 +377,9 @@ if (isset($_POST['addnewbarang'])) {
                                                                 <p>Are you sure you want to delete this item?</p>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <form method="post" action="delete_item.php"> <!-- Adjust action to your delete script -->
+                                                                <form method="post" action="deleteitem.php"> <!-- Adjust action to your delete script -->
                                                                     <input type="hidden" name="id" value="<?= $data['id']; ?>">
-                                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                                    <button type="submit" name="delete_item" class="btn btn-danger">Delete</button>
                                                                 </form>
                                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                                                             </div>
@@ -358,19 +393,15 @@ if (isset($_POST['addnewbarang'])) {
                                     </table>
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
                     <!-- End of Main Content -->
-
                 </div>
                 <!-- End of Content Wrapper -->
-
             </div>
             <!-- End of Page Wrapper -->
-
         </div>
+    </div>
 
 </body>
 
