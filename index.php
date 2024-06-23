@@ -228,27 +228,8 @@ if (isset($_POST['addnewbarang'])) {
                             </div>
                         </div>
 
-
                         <!-- Content Row -->
                         <div class=" row">
-
-                            <!-- Bootstrap core JavaScript-->
-                            <script src="vendor/jquery/jquery.min.js"></script>
-                            <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-                            <!-- Core plugin JavaScript-->
-                            <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
-                            <!-- Custom scripts for all pages-->
-                            <script src="js/sb-admin-2.min.js"></script>
-
-                            <!-- Page level plugins -->
-                            <script src="vendor/chart.js/Chart.min.js"></script>
-
-                            <!-- Page level custom scripts -->
-                            <script src="js/demo/chart-area-demo.js"></script>
-                            <script src="js/demo/chart-pie-demo.js"></script>
-
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -267,8 +248,8 @@ if (isset($_POST['addnewbarang'])) {
                                         <tbody>
                                             <?php
                                             $i = 1; // Initialize $i before the loop
-                                            $ambilsemuadataitem = mysqli_query($conn, "select * from item");
-                                            while ($data = mysqli_fetch_array($ambilsemuadataitem)) {
+                                            $getItems = mysqli_query($conn, "SELECT * FROM item ORDER BY id DESC");
+                                            while ($data = mysqli_fetch_array($getItems)) {
                                                 $name = $data['name'];
                                                 $description = $data['description'];
                                                 $quantity = $data['quantity'];
@@ -285,9 +266,9 @@ if (isset($_POST['addnewbarang'])) {
                                                     <td><?= $normal_price; ?></td>
                                                     <td><?= $reseller_price; ?></td>
                                                     <td>
-                                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewModal<?= $data['id']; ?>">View</button>
-                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal<?= $data['id']; ?>">Edit</button>
-                                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal<?= $data['id']; ?>">Delete</button>
+                                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewModal<?= $data['id']; ?>"><i class="fa fa-eye"></i></button>
+                                                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal<?= $data['id']; ?>"><i class="fa fa-edit"></i></button>
+                                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal<?= $data['id']; ?>"><i class="fa fa-trash"></i></button>
                                                     </td>
                                                 </tr>
 
@@ -402,6 +383,25 @@ if (isset($_POST['addnewbarang'])) {
             <!-- End of Page Wrapper -->
         </div>
     </div>
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="js/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="js/demo/chart-area-demo.js"></script>
+    <script src="js/demo/chart-pie-demo.js"></script>
+
 
 </body>
 

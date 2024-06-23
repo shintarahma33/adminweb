@@ -1,6 +1,25 @@
 <?php
 require 'function.php';
 require 'cek.php';
+
+function updateStatus($connection, $status)
+{
+    $transactionId = $_POST['transaction_id'];
+
+    $approveTransaction = mysqli_query($connection, "UPDATE transaction SET status = '$status' WHERE id = '$transactionId'");
+    if ($approveTransaction) {
+        header('location:transaction.php');
+    } else {
+        echo 'Failed to update data';
+    }
+}
+
+if (isset($_POST['approve_transaction'])) {
+    updateStatus($conn, 'approved');
+} else if (isset($_POST['reject_transaction'])) {
+    updateStatus($conn, 'rejected');
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -112,24 +131,6 @@ require 'cek.php';
 
                     <!-- Content Row -->
                     <div class="row">
-
-                        <!-- Bootstrap core JavaScript-->
-                        <script src="vendor/jquery/jquery.min.js"></script>
-                        <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-                        <!-- Core plugin JavaScript-->
-                        <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
-                        <!-- Custom scripts for all pages-->
-                        <script src="js/sb-admin-2.min.js"></script>
-
-                        <!-- Page level plugins -->
-                        <script src="vendor/chart.js/Chart.min.js"></script>
-
-                        <!-- Page level custom scripts -->
-                        <script src="js/demo/chart-area-demo.js"></script>
-                        <script src="js/demo/chart-pie-demo.js"></script>
-
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -139,10 +140,214 @@ require 'cek.php';
                                             <th>Name</th>
                                             <th>Status</th>
                                             <th>Proof Payment</th>
+                                            <th>Transaction Date</th>
                                             <th>Action</th>
 
                                         </tr>
                                     </thead>
+                                    <tbody>
+                                        <?php
+                                        $getTransactions = mysqli_query($conn, "SELECT transaction.id, user.name, transaction.status, transaction.proof_payment, transaction.created_at FROM transaction INNER JOIN user ON transaction.user_id = user.id ORDER BY transaction.id DESC");
+                                        while ($data = mysqli_fetch_array($getTransactions)) {
+                                            $transactionId = $data['id'];
+                                            $userName = $data['name'];
+                                            $status = $data['status'];
+                                            $proofPayment = $data['proof_payment'];
+                                            $transactionDate = $data['created_at'];
+                                        ?>
+                                            <tr>
+                                                <td><?= $userName; ?></td>
+                                                <td>
+                                                    <?php
+                                                    if ($status == 'approved') {
+                                                    ?>
+                                                        <span class="btn btn-success"><?= $status; ?></span>
+                                                    <?php
+                                                    } else if ($status == 'rejected') {
+                                                    ?>
+                                                        <span class="btn btn-danger"><?= $status; ?></span>
+                                                    <?php
+                                                    } else if ($status == 'review') {
+                                                    ?>
+                                                        <span class="btn btn-warning"><?= $status; ?></span>
+                                                    <?php
+                                                    } else { ?>
+                                                        <span class="btn btn-secondary"><?= $status; ?></span>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </td>
+                                                <td>
+                                                    <?php
+                                                    if (!empty($proofPayment)) {
+                                                    ?>
+                                                        <img src="uploads/<?= $proofPayment; ?>" alt="Proof Payment" width="100" height="100">
+                                                    <?php
+                                                    } else {
+                                                        echo '-';
+                                                    }
+                                                    ?>
+                                                </td>
+                                                <td><?= $transactionDate; ?></td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#viewModal<?= $transactionId; ?>"><i class="fa fa-eye"></i></button>
+                                                    <!-- View Modal -->
+                                                    <div class="modal fade" id="viewModal<?= $transactionId; ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                        <div class="modal-dialog" role="document">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="exampleModalLabel">View Transaction</h5>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <!-- Add the view details here -->
+                                                                    <div class="form-group">
+                                                                        <label>User Name:</label>
+                                                                        <label class="form-control"><?= $userName; ?></label>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Transaction Date:</label>
+                                                                        <label class="form-control"><?= $transactionDate; ?></label>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Status:</label>
+                                                                        <label class="form-control"><?= $status; ?></label>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Transaction Detail</label>
+                                                                        <table class="table-responsive">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th>#</th>
+                                                                                    <th>Item Name</th>
+                                                                                    <th>Quantity</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                <?php
+                                                                                $number = 1;
+                                                                                $getTransactionsDetail = mysqli_query($conn, "SELECT item.name, transaction_detail.quantity FROM transaction_detail INNER JOIN item ON transaction_detail.item_id = item.id WHERE transaction_detail.transaction_id = '$transactionId' ORDER BY transaction_detail.id DESC");
+                                                                                while ($data = mysqli_fetch_array($getTransactionsDetail)) {
+                                                                                    $itemName = $data['name'];
+                                                                                    $quantity = $data['quantity'];
+                                                                                ?>
+                                                                                    <tr>
+                                                                                        <td><?= $number++; ?></td>
+                                                                                        <td><?= $itemName; ?></td>
+                                                                                        <td><?= $quantity; ?></td>
+                                                                                    </tr>
+                                                                                <?php } ?>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Proof of Payment:</label><br>
+                                                                        <label>
+                                                                            <?php
+                                                                            if (!empty($proofPayment)) {
+                                                                            ?>
+                                                                                <img src="uploads/<?= $proofPayment; ?>" alt="" width="300" height="300">
+                                                                            <?php
+                                                                            } else {
+                                                                                echo '-';
+                                                                            }
+                                                                            ?>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <?php
+                                                    if ($status != 'approved') {
+                                                    ?>
+                                                        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#approveModal<?= $transactionId; ?>"><i class="fa fa-check" title="Approve"></i></button>
+                                                        <!-- Approve Modal -->
+                                                        <div class="modal fade" id="approveModal<?= $transactionId; ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                            <div class="modal-dialog" role="document">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title" id="exampleModalLabel">Approve Transaction</h5>
+                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                            <span aria-hidden="true">&times;</span>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <p>Are you sure you want to approve this transaction?</p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <form method="post" action="">
+                                                                            <input type="hidden" name="transaction_id" value="<?= $transactionId; ?>">
+                                                                            <button type="submit" name="approve_transaction" class="btn btn-success">Approve</button>
+                                                                        </form>
+                                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+                                                    <?php
+                                                    if ($status != 'rejected') {
+                                                    ?>
+                                                        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#rejectModal<?= $transactionId; ?>"><i class="fa fa-times" title="Reject"></i></button>
+                                                        <!-- Reject Modal -->
+                                                        <div class="modal fade" id="rejectModal<?= $transactionId; ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                            <div class="modal-dialog" role="document">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title" id="exampleModalLabel">Reject Transaction</h5>
+                                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                            <span aria-hidden="true">&times;</span>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <p>Are you sure you want to reject this transaction?</p>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <form method="post" action="">
+                                                                            <input type="hidden" name="transaction_id" value="<?= $transactionId; ?>">
+                                                                            <button type="submit" name="reject_transaction" class="btn btn-danger">Reject</button>
+                                                                        </form>
+                                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="js/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="vendor/chart.js/Chart.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="js/demo/chart-area-demo.js"></script>
+    <script src="js/demo/chart-pie-demo.js"></script>
 </body>
 
 </html>

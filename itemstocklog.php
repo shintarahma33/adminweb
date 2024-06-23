@@ -1,6 +1,75 @@
 <?php
 require 'function.php';
 require 'cek.php';
+
+if (isset($_POST['add_stock'])) {
+    $itemId = $_POST['item_id'];
+    $quantity = $_POST['quantity'];
+
+    $insertData = mysqli_query($conn, "INSERT INTO item_stock_log (item_id, quantity, created_at) VALUES ('$itemId','$quantity',NOW())");
+
+    if ($insertData) {
+        $getItemStock = mysqli_query($conn, "SELECT * FROM item WHERE id = '$itemId'");
+        $currentItemStock = mysqli_fetch_array($getItemStock)['quantity'];
+        $newItemStock = $currentItemStock + $quantity;
+
+        $updateItemStock = mysqli_query($conn, "UPDATE item SET quantity = '$newItemStock' WHERE id = '$itemId'");
+
+        if ($updateItemStock) {
+            header('location:itemstocklog.php');
+        } else {
+            echo 'Failed to update data';
+        }
+    } else {
+        echo 'Failed to insert data';
+    }
+} else if (isset($_POST['edit_stock'])) {
+    $itemId = $_POST['item_id'];
+    $stockId = $_POST['stock_id'];
+    $currentStock = $_POST['current_stock'];
+    $quantity = $_POST['quantity'];
+
+    $getItemStock = mysqli_query($conn, "SELECT * FROM item WHERE id = '$itemId'");
+    $currentItemStock = mysqli_fetch_array($getItemStock)['quantity'];
+
+    $newItemStock = ($currentItemStock - $currentStock) + $quantity;
+
+    $updateStock = mysqli_query($conn, "UPDATE item_stock_log SET quantity = '$quantity' WHERE id = '$stockId'");
+
+    if ($updateStock) {
+
+        $updateItemStock = mysqli_query($conn, "UPDATE item SET quantity = '$newItemStock' WHERE id = '$itemId'");
+
+        if ($updateItemStock) {
+            header('location:itemstocklog.php');
+        } else {
+            echo 'Failed to update data';
+        }
+    }
+} else if (isset($_POST['delete_stock'])) {
+    $itemId = $_POST['item_id'];
+    $stockId = $_POST['stock_id'];
+    $currentStock = $_POST['current_stock'];
+
+    $getItemStock = mysqli_query($conn, "SELECT * FROM item WHERE id = '$itemId'");
+    $currentItemStock = mysqli_fetch_array($getItemStock)['quantity'];
+
+    $newItemStock = $currentItemStock - $currentStock;
+
+    $updateItemStock = mysqli_query($conn, "UPDATE item SET quantity = '$newItemStock' WHERE id = '$itemId'");
+
+    if ($updateItemStock) {
+        $deleteStockLog = mysqli_query($conn, "DELETE FROM item_stock_log WHERE id = '$stockId'");
+
+        if ($deleteStockLog) {
+            header('location:itemstocklog.php');
+        } else {
+            echo 'Failed to delete data';
+        }
+    } else {
+        echo 'Failed to update data';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,9 +105,8 @@ require 'cek.php';
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
                 <div class="sidebar-brand-icon rotate-n-15">
                 </div>
-                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah </sup>
+                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah</sup>
                 </div>
-
             </a>
 
             <!-- Divider -->
@@ -115,18 +183,27 @@ require 'cek.php';
                         <div class="modal fade" id="myModal" role="dialog">
                             <div class="modal-dialog">
 
-
                                 <!-- Modal content-->
                                 <div class="modal-content">
                                     <div class="modal-header">
                                     </div>
                                     <div class="modal-body">
-                                        <input type="text" name="name" placeholder="Name Product" class="form-control" required>
-                                        <br>
-                                        <input type="number" name="quantity" placeholder="Quantity" class="form-control" required>
-                                        <br>
-                                        <button type="submit" class="btn btn-primary" name="addnewbarang">Submit</button>
-                                        <br>
+                                        <form action="" method="post">
+                                            <select class="form-control" name="item_id">
+                                                <?php
+                                                $getItems = mysqli_query($conn, "SELECT * FROM item");
+                                                while ($data = mysqli_fetch_array($getItems)) {
+                                                ?>
+                                                    <option value="<?= $data['id']; ?>"><?= $data['name']; ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select> <br>
+                                            <input type="number" name="quantity" placeholder="Quantity" class="form-control" required>
+                                            <br>
+                                            <button type="submit" class="btn btn-primary" name="add_stock">Submit</button>
+                                            <br>
+                                        </form>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -137,13 +214,105 @@ require 'cek.php';
                         </div>
 
                     </div>
+                    <!-- Content Row -->
+                    <div class="row">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Name Product</th>
+                                            <th>Quantity</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $getItemStockLog = mysqli_query($conn, "SELECT item.id AS item_id, item_stock_log.id AS stock_id, item.name, item_stock_log.quantity FROM item_stock_log INNER JOIN item ON item_stock_log.item_id = item.id ORDER BY item_stock_log.id DESC");
+                                        while ($data = mysqli_fetch_array($getItemStockLog)) {
+                                            $itemId = $data['item_id'];
+                                            $stockId = $data['stock_id'];
+                                            $name = $data['name'];
+                                            $quantity = $data['quantity'];
+                                        ?>
+                                            <tr>
+                                                <td><?= $name; ?></td>
+                                                <td><?= $quantity; ?></td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal<?= $stockId; ?>"><i class="fa fa-edit"></i></button>
+                                                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal<?= $stockId; ?>"><i class="fa fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <!-- Modal -->
+                                            <div class="modal fade" id="editModal<?= $stockId ?>" role="dialog">
+                                                <div class="modal-dialog">
 
-</body>
+                                                    <!-- Modal content-->
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form action="" method="post">
+                                                                <input type="hidden" name="stock_id" value="<?= $stockId; ?>">
+                                                                <input type="hidden" name="current_stock" value="<?= $quantity; ?>">
+                                                                <select class="form-control" name="item_id" disabled>
+                                                                    <?php
+                                                                    $getItems = mysqli_query($conn, "SELECT * FROM item");
+                                                                    while ($dataItem = mysqli_fetch_array($getItems)) {
+                                                                    ?>
+                                                                        <option value="<?= $dataItem['id']; ?>" <?= $itemId === $dataItem['id'] ? 'selected' : '' ?>><?= $dataItem['name']; ?></option>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </select> <br>
+                                                                <input type="number" name="quantity" placeholder="Quantity" class="form-control" value="<?= $quantity; ?>" required>
+                                                                <br>
+                                                                <button type="submit" class="btn btn-primary" name="edit_stock">Submit</button>
+                                                                <br>
+                                                            </form>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
 
-</html>
-
-<!-- Content Row -->
-<div class="row">
+                                                </div>
+                                            </div>
+                                            <!-- Delete Modal -->
+                                            <div class="modal fade" id="deleteModal<?= $stockId; ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="exampleModalLabel">Delete Item</h5>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete this item?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <form method="post" action=""> <!-- Adjust action to your delete script -->
+                                                                <input type="hidden" name="stock_id" value="<?= $stockId; ?>">
+                                                                <input type="hidden" name="current_stock" value="<?= $quantity; ?>">
+                                                                <input type="hidden" name="item_id" value="<?= $itemId; ?>">
+                                                                <button type="submit" name="delete_stock" class="btn btn-danger">Delete</button>
+                                                            </form>
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
@@ -161,23 +330,6 @@ require 'cek.php';
     <!-- Page level custom scripts -->
     <script src="js/demo/chart-area-demo.js"></script>
     <script src="js/demo/chart-pie-demo.js"></script>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>Name Product</th>
-                        <th>Quantity</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Product 1</td>
-                        <td>Description 1</td>
-                        <td>
-                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewModal1">View</button>
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal1">Edit</button>
-                            <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal1">Delete</button>
-                        </td>
-                    </tr>
+</body>
+
+</html>
