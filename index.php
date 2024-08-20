@@ -33,9 +33,10 @@ if (isset($_POST['addnewbarang'])) {
     $point = $_POST['point'];
     $normal_price = $_POST['normal_price'];
     $reseller_price = $_POST['reseller_price'];
+    $expired = $_POST['expired'];
     $images = $_FILES['images'];
 
-    $insertdata = mysqli_query($conn, "INSERT INTO item (name, description, quantity, point, normal_price, reseller_price, created_at) VALUES ('$name','$description','$quantity','$point','$normal_price','$reseller_price', NOW())");
+    $insertdata = mysqli_query($conn, "INSERT INTO item (name, description, quantity, point, normal_price, reseller_price, expired, created_at) VALUES ('$name','$description','$quantity','$point','$normal_price','$reseller_price','$expired', NOW())");
     if ($insertdata) {
         $lastItemId = $conn->insert_id;
 
@@ -53,9 +54,10 @@ if (isset($_POST['addnewbarang'])) {
     $point = $_POST['point'];
     $normal_price = $_POST['normal_price'];
     $reseller_price = $_POST['reseller_price'];
+    $expired = $_POST['expired'];
     $images = $_FILES['images'];
 
-    $updateData = mysqli_query($conn, "UPDATE item SET name = '$name', description = '$description', quantity = '$quantity', point = '$point', normal_price = '$normal_price', reseller_price = '$reseller_price' WHERE id = '$itemId'");
+    $updateData = mysqli_query($conn, "UPDATE item SET name = '$name', description = '$description', quantity = '$quantity', point = '$point', normal_price = '$normal_price', reseller_price = '$reseller_price', expired = '$expired' WHERE id = '$itemId'");
 
     if ($updateData) {
 
@@ -92,7 +94,7 @@ if (isset($_POST['addnewbarang'])) {
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Agen Jglow Tyara Cimahi Tengah</title>
+    <title>Jglow Tyara Cimahi Tengah</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -115,7 +117,7 @@ if (isset($_POST['addnewbarang'])) {
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
                 <div class="sidebar-brand-icon rotate-n-15">
                 </div>
-                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah
+                <div class="sidebar-brand-text mx-3 ">Jglow Tyara Cimahi Tengah
                 </div>
             </a>
 
@@ -185,6 +187,9 @@ if (isset($_POST['addnewbarang'])) {
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
+                    <div class="mb-4 p-3">
+                    </div>
+
                     <!-- Page Heading -->
                     <div class="d-sm-flex flex-column align-items-start mb-4 p-3">
                         <h1 class="h3 mb-0 text-gray-800">Item</h1>
@@ -203,18 +208,28 @@ if (isset($_POST['addnewbarang'])) {
                                     </div>
                                     <div class="modal-body">
                                         <form method="post" enctype="multipart/form-data" action="">
+                                            <label>Name</label>
                                             <input type="text" name="name" placeholder="Name" class="form-control" required>
                                             <br>
+                                            <label>Description</label>
                                             <textarea name="description" placeholder="Description" class="form-control" required></textarea>
                                             <br>
+                                            <label>Quantity</label>
                                             <input type="number" name="quantity" placeholder="Quantity" class="form-control" required>
                                             <br>
+                                            <label>Point</label>
                                             <input type="number" name="point" placeholder="Point" class="form-control" required>
                                             <br>
+                                            <label>Normal Price</label>
                                             <input type="number" name="normal_price" placeholder="Normal Price" class="form-control" required>
                                             <br>
+                                            <label>Reseller Price</label>
                                             <input type="number" name="reseller_price" placeholder="Reseller Price" class="form-control" required>
                                             <br>
+                                            <label>Expired</label>
+                                            <input type="date" name="expired" placeholder="Expired" class="form-control" required>
+                                            <br>
+                                            <label>Photo</label>
                                             <input type="file" name="images[]" multiple class="form-control" accept="image/*">
                                             <br>
                                             <button type="submit" class="btn btn-primary" name="addnewbarang">Submit</button>
@@ -256,6 +271,7 @@ if (isset($_POST['addnewbarang'])) {
                                                 $point = $data['point'];
                                                 $normal_price = $data['normal_price'];
                                                 $reseller_price = $data['reseller_price'];
+                                                $expired = $data['expired'];
                                             ?>
                                                 <tr>
                                                     <td><?= $i++; ?></td>
@@ -290,6 +306,7 @@ if (isset($_POST['addnewbarang'])) {
                                                                 <p>Point: <?= $point; ?></p>
                                                                 <p>Normal Price: <?= $normal_price; ?></p>
                                                                 <p>Reseller Price: <?= $reseller_price; ?></p>
+                                                                <p>Expired: <?= $expired; ?></p>
                                                                 <p>Photo:</p>
                                                                 <?php
                                                                 $getImageFromItem = mysqli_query($conn, "SELECT * FROM item_photo WHERE item_id = " . $data['id']);
@@ -320,18 +337,28 @@ if (isset($_POST['addnewbarang'])) {
                                                             <div class="modal-body">
                                                                 <form method="post" action="" enctype="multipart/form-data"> <!-- Adjust action to your edit script -->
                                                                     <input type="hidden" name="item_id" value="<?= $data['id']; ?>">
+                                                                    <label>Name</label>
                                                                     <input type="text" name="name" placeholder="Name" class="form-control" value="<?= $name; ?>" required>
                                                                     <br>
+                                                                    <label>Description</label>
                                                                     <textarea name="description" placeholder="Description" class="form-control"><?= $description; ?></textarea>
                                                                     <br>
+                                                                    <label>Quantity</label>
                                                                     <input type="number" name="quantity" placeholder="Quantity" class="form-control" value="<?= $quantity; ?>" required>
                                                                     <br>
+                                                                    <label>Point</label>
                                                                     <input type="number" name="point" placeholder="Point" class="form-control" value="<?= $point; ?>" required>
                                                                     <br>
+                                                                    <label>Normal Price</label>
                                                                     <input type="number" name="normal_price" placeholder="Normal Price" class="form-control" value="<?= $normal_price; ?>" required>
                                                                     <br>
+                                                                    <label>Reseller Price</label>
                                                                     <input type="number" name="reseller_price" placeholder="Reseller Price" class="form-control" value="<?= $reseller_price; ?>" required>
                                                                     <br>
+                                                                    <label>Expired</label>
+                                                                    <input type="date" name="expired" placeholder="Expired" class="form-control" value="<?= $expired; ?>" required>
+                                                                    <br>
+                                                                    <label>Photo</label>
                                                                     <input type="file" name="images[]" multiple class="form-control" accept="image/*">
                                                                     <br>
                                                                     <button type="submit" class="btn btn-primary" name="edit_item">Save changes</button>

@@ -32,7 +32,7 @@ if (isset($_POST['approve_transaction'])) {
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Agen Jglow Tyara Cimahi Tengah</title>
+    <title>Jglow Tyara Cimahi Tengah</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -55,7 +55,7 @@ if (isset($_POST['approve_transaction'])) {
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
                 <div class="sidebar-brand-icon rotate-n-15">
                 </div>
-                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah </sup>
+                <div class="sidebar-brand-text mx-3 ">Jglow Tyara Cimahi Tengah</sup>
                 </div>
 
             </a>
@@ -123,9 +123,41 @@ if (isset($_POST['approve_transaction'])) {
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
+                    <div class="mb-4 p-3">
+                    </div>
+
                     <!-- Page Heading -->
-                    <div class="d-sm-flex flex-column align-items-start mb-4 p-3">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Transaction</h1>
+                    </div>
+
+                    <!-- Content Row -->
+                    <div class="row">
+
+                        <!-- Earnings (Monthly) Card Example -->
+                        <div class="col-xl-12 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Sales Result</div>
+                                            <?php
+                                            $getQuantitySales = mysqli_query($conn, "SELECT transaction_detail.item_id, transaction_detail.quantity, item.reseller_price FROM transaction_detail INNER JOIN transaction ON transaction.id = transaction_detail.transaction_id INNER JOIN item ON item.id = transaction_detail.item_id WHERE transaction.status = 'approved'");
+                                            while ($row = mysqli_fetch_array($getQuantitySales)) {
+                                                $price[] = ($row['quantity'] * $row['reseller_price']);
+                                            }
+                                            ?>
+                                            <div class="h4 mb-0 font-weight-bold text-gray-800">Rp<?= number_format(array_sum($price), 0, ',', '.'); ?></div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                                    class="fas fa-download fa-sm text-white-50"></i> Download Data</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 
@@ -181,7 +213,7 @@ if (isset($_POST['approve_transaction'])) {
                                                     <?php
                                                     if (!empty($proofPayment)) {
                                                     ?>
-                                                        <img src="uploads/<?= $proofPayment; ?>" alt="Proof Payment" width="100" height="100">
+                                                        <img src="http://127.0.0.1:8000/<?= $proofPayment; ?>" alt="Proof Payment" width="100" height="100">
                                                     <?php
                                                     } else {
                                                         echo '-';
@@ -248,7 +280,7 @@ if (isset($_POST['approve_transaction'])) {
                                                                             <?php
                                                                             if (!empty($proofPayment)) {
                                                                             ?>
-                                                                                <img src="uploads/<?= $proofPayment; ?>" alt="" width="300" height="300">
+                                                                                <img src="http://127.0.0.1:8000/<?= $proofPayment; ?>" alt="" width="300" height="300">
                                                                             <?php
                                                                             } else {
                                                                                 echo '-';

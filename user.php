@@ -55,7 +55,7 @@ if (isset($_POST['add_user'])) {
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Agen Jglow Tyara Cimahi Tengah</title>
+    <title>Jglow Tyara Cimahi Tengah</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -78,7 +78,7 @@ if (isset($_POST['add_user'])) {
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
                 <div class="sidebar-brand-icon rotate-n-15">
                 </div>
-                <div class="sidebar-brand-text mx-3 ">Agen Jglow Tyara Cimahi Tengah </sup>
+                <div class="sidebar-brand-text mx-3 ">Jglow Tyara Cimahi Tengah </sup>
                 </div>
 
             </a>
@@ -144,6 +144,9 @@ if (isset($_POST['add_user'])) {
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
+
+                    <div class="mb-4 p-3">
+                    </div>
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex flex-column align-items-start mb-4 p-3">
