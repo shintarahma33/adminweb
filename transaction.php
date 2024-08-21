@@ -151,7 +151,7 @@ if (isset($_POST['approve_transaction'])) {
                                             <div class="h4 mb-0 font-weight-bold text-gray-800">Rp<?= number_format(array_sum($price), 0, ',', '.'); ?></div>
                                         </div>
                                         <div class="col-auto">
-                                            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                            <a href="excel.php" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
                                                     class="fas fa-download fa-sm text-white-50"></i> Download Data</a>
                                         </div>
                                     </div>
@@ -180,7 +180,7 @@ if (isset($_POST['approve_transaction'])) {
                                     <tbody>
                                         <?php
                                         $getTransactions = mysqli_query($conn, "SELECT transaction.id, user.name, transaction.status, transaction.proof_payment, transaction.created_at FROM transaction INNER JOIN user ON transaction.user_id = user.id ORDER BY transaction.id DESC");
-                                        while ($data = mysqli_fetch_array($getTransactions)) {
+                                        while ($data = mysqli_fetch_assoc($getTransactions)) {
                                             $transactionId = $data['id'];
                                             $userName = $data['name'];
                                             $status = $data['status'];
