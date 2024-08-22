@@ -22,7 +22,7 @@ if (isset($_GET['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Item - Agen Jglow Tyara Cimahi Tengah</title>
+    <title>View Item - Jglow Tyara Cimahi Tengah</title>
     <!-- Add your CSS and JS files here -->
 </head>
 
