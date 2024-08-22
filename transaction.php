@@ -181,7 +181,8 @@ if (isset($_POST['approve_transaction'])) {
                                                     <?php
                                                     if (!empty($proofPayment)) {
                                                     ?>
-                                                        <img src="uploads/<?= $proofPayment; ?>" alt="Proof Payment" width="100" height="100">
+                                                        <!-- <img src="uploads/<?= $proofPayment; ?>" alt="Proof Payment" width="100" height="100"> -->
+                                                        <img src="http://127.0.0.1:8000/<?= $proofPayment; ?>" alt="Proof Payment" width="100" height="100">
                                                     <?php
                                                     } else {
                                                         echo '-';
@@ -248,7 +249,7 @@ if (isset($_POST['approve_transaction'])) {
                                                                             <?php
                                                                             if (!empty($proofPayment)) {
                                                                             ?>
-                                                                                <img src="uploads/<?= $proofPayment; ?>" alt="" width="300" height="300">
+                                                                                <img src="http://127.0.0.1:8000/<?= $proofPayment; ?>" alt="" width="300" height="300">
                                                                             <?php
                                                                             } else {
                                                                                 echo '-';
